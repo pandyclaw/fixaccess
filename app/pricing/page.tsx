@@ -1,66 +1,33 @@
-import { ArrowLeft } from "lucide-react";
+import { Shield } from "lucide-react";
 import { PricingTable } from "@/components/PricingTable";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import Link from "next/link";
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-[#09090b]">
-      <nav className="border-b border-zinc-800/50 bg-[#09090b]/80 backdrop-blur-xl">
+    <div className="min-h-screen bg-white">
+      <nav className="border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-xl font-bold text-emerald-400">FixAccess</span>
-          </a>
+          <Link href="/" className="flex items-center gap-2">
+            <Shield className="h-6 w-6 text-blue-600" />
+            <span className="text-lg font-bold text-slate-900">FixAccess</span>
+          </Link>
+          <Link href="/" className="text-sm text-slate-600 hover:text-slate-900">← Back</Link>
         </div>
       </nav>
 
-      <div className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-white text-center mb-4">Choose Your Plan</h1>
-          <p className="text-zinc-500 text-center mb-12 max-w-lg mx-auto">
-            Start with a free scan. Upgrade to Pro for unlimited scans and AI fix code for every issue.
-          </p>
+      <section className="py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <h1 className="text-4xl font-bold text-slate-900">Simple, Transparent Pricing</h1>
+            <p className="mt-4 text-lg text-slate-600">Start free. No credit card required. Upgrade when you need more.</p>
+          </div>
           <PricingTable />
+          <div className="mt-12 text-center">
+            <p className="text-sm text-slate-500">All plans include SSL encryption, GDPR compliance, and 99.9% uptime SLA.</p>
+            <p className="text-sm text-slate-500 mt-2">Questions? <a href="mailto:hello@fixaccess.io" className="text-blue-600 hover:text-blue-700">Contact us</a></p>
+          </div>
         </div>
-      </div>
-
-      <div className="py-16 px-4 border-t border-zinc-800/50">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-white text-center mb-8">Common Questions</h2>
-          <Accordion className="space-y-2">
-            <AccordionItem value="trial" className="bg-zinc-900 border border-zinc-800 rounded-xl px-4">
-              <AccordionTrigger className="text-zinc-200 hover:text-white">
-                Is there a free trial?
-              </AccordionTrigger>
-              <AccordionContent className="text-zinc-400">
-                Yes! The Free plan gives you 3 scans per month with basic issue detection. You can upgrade to Pro
-                anytime for unlimited scans and full AI fix code.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="cancel" className="bg-zinc-900 border border-zinc-800 rounded-xl px-4">
-              <AccordionTrigger className="text-zinc-200 hover:text-white">
-                Can I cancel anytime?
-              </AccordionTrigger>
-              <AccordionContent className="text-zinc-400">
-                Absolutely. Cancel your subscription at any time. You&apos;ll retain access until the end of your
-                billing period.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-      </div>
-
-      <div className="py-12 px-4 border-t border-zinc-800/50 text-center">
-        <p className="text-zinc-500">
-          Questions? Contact us at{" "}
-          <span className="text-emerald-400">support@fixaccess.com</span>
-        </p>
-      </div>
+      </section>
     </div>
   );
 }

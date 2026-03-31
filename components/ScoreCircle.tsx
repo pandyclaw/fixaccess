@@ -1,6 +1,6 @@
 "use client";
 
-import { getScoreColor, getScoreLabel } from "@/lib/score";
+import { getScoreLabel } from "@/lib/score";
 
 interface ScoreCircleProps {
   score: number;
@@ -11,7 +11,7 @@ export function ScoreCircle({ score, size = 120 }: ScoreCircleProps) {
   const r = size * 0.4;
   const circumference = 2 * Math.PI * r;
   const offset = circumference * (1 - score / 100);
-  const color = getScoreColor(score);
+  const color = score >= 80 ? "#22c55e" : score >= 50 ? "#f59e0b" : "#ef4444";
   const label = getScoreLabel(score);
 
   return (
@@ -22,7 +22,7 @@ export function ScoreCircle({ score, size = 120 }: ScoreCircleProps) {
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="#27272a"
+          stroke="#e2e8f0"
           strokeWidth={8}
         />
         <circle
@@ -40,7 +40,7 @@ export function ScoreCircle({ score, size = 120 }: ScoreCircleProps) {
       </svg>
       <div className="absolute flex flex-col items-center justify-center" style={{ width: size, height: size }}>
         <span className="text-3xl font-bold" style={{ color }}>{score}</span>
-        <span className="text-xs text-zinc-500">/ 100</span>
+        <span className="text-xs text-slate-400">/ 100</span>
       </div>
       <span className="text-sm font-medium" style={{ color }}>{label}</span>
     </div>

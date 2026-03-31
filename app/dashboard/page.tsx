@@ -1,78 +1,83 @@
+import { Shield } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
-import { getScoreColor } from "@/lib/score";
+import Link from "next/link";
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    redirect("/api/auth/signin");
-  }
-
-  const userId = (session.user as { id?: string }).id;
   const scans = await prisma.scan.findMany({
-    where: { userId: userId || undefined },
     orderBy: { createdAt: "desc" },
     take: 50,
   });
 
+  const scoreColor = (s: number) =>
+    s >= 80 ? "bg-green-50 text-green-700 border-green-200"
+    : s >= 50 ? "bg-amber-50 text-amber-700 border-amber-200"
+    : "bg-red-50 text-red-700 border-red-200";
+
   return (
-    <div className="min-h-screen bg-[#09090b]">
-      <nav className="border-b border-zinc-800/50 bg-[#09090b]/80 backdrop-blur-xl">
+    <div className="min-h-screen bg-slate-50">
+      <nav className="border-b border-slate-200 bg-white">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-xl font-bold text-emerald-400">FixAccess</span>
-          </a>
+          <Link href="/" className="flex items-center gap-2">
+            <Shield className="h-6 w-6 text-blue-600" />
+            <span className="text-lg font-bold text-slate-900">FixAccess</span>
+          </Link>
+          <Link href="/" className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+            New Scan
+          </Link>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold text-white mb-8">Your Scans</h1>
+      <div className="max-w-5xl mx-auto px-4 py-10">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900">Your Scans</h1>
+          <p className="mt-1 text-sm text-slate-500">{scans.length} scan{scans.length !== 1 ? "s" : ""} total</p>
+        </div>
 
         {scans.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-zinc-500 mb-4">No scans yet. Run your first scan!</p>
-            <a href="/" className="text-emerald-400 hover:text-emerald-300 text-sm">
-              Go to scanner →
-            </a>
+          <div className="bg-white border border-slate-200 rounded-xl p-16 text-center">
+            <Shield className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">No scans yet</h3>
+            <p className="text-slate-500 mb-6">Scan your first website to see results here.</p>
+            <Link href="/" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors">
+              Scan a Website
+            </Link>
           </div>
         ) : (
-          <div className="space-y-3">
-            {scans.map((scan) => {
-              const color = getScoreColor(scan.score);
-              return (
-                <a
-                  key={scan.id}
-                  href={`/scan/${scan.id}`}
-                  className="flex items-center gap-4 p-4 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800/50 transition-colors"
-                >
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-2"
-                    style={{ borderColor: color, color }}
-                  >
-                    {scan.score}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-zinc-200 truncate flex items-center gap-1.5">
-                      {scan.url} <ExternalLink className="h-3 w-3 text-zinc-500 shrink-0" />
-                    </p>
-                    <p className="text-xs text-zinc-500 mt-0.5">
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">URL</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Score</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
+                  <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Report</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {scans.map((scan) => (
+                  <tr key={scan.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-slate-900 font-medium truncate max-w-xs block">{scan.url}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-block px-2.5 py-0.5 rounded-md text-sm font-semibold border ${scoreColor(scan.score)}`}>
+                        {scan.score}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-500">
                       {new Date(scan.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
+                        month: "short", day: "numeric", year: "numeric",
                       })}
-                    </p>
-                  </div>
-                </a>
-              );
-            })}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Link href={`/scan/${scan.id}`} className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        View Report →
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

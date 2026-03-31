@@ -1,12 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, ExternalLink, Shield } from "lucide-react";
 import { ScoreCircle } from "@/components/ScoreCircle";
 import { IssueCard } from "@/components/IssueCard";
-import { getImpactBadgeColor } from "@/lib/score";
 import type { Violation } from "@/lib/scanner";
 
 interface ScanResultsProps {
@@ -16,6 +13,15 @@ interface ScanResultsProps {
   violations: Violation[];
   createdAt: string;
 }
+
+const impactColors: Record<string, string> = {
+  critical: "bg-red-50 text-red-700 border-red-200",
+  serious: "bg-orange-50 text-orange-700 border-orange-200",
+  moderate: "bg-amber-50 text-amber-700 border-amber-200",
+  minor: "bg-blue-50 text-blue-700 border-blue-200",
+};
+
+const tabs = ["all", "critical", "serious", "moderate", "minor"] as const;
 
 export function ScanResults({ url, score, violations, createdAt }: ScanResultsProps) {
   const [activeTab, setActiveTab] = useState("all");
@@ -32,14 +38,20 @@ export function ScanResults({ url, score, violations, createdAt }: ScanResultsPr
       ? violations
       : violations.filter((v) => v.impact === activeTab);
 
+  const hasLockedIssues = violations.some(
+    (v) => v.impact === "critical" || v.impact === "serious"
+  );
+
   return (
-    <div className="min-h-screen bg-[#09090b]">
-      <nav className="border-b border-zinc-800/50 bg-[#09090b]/80 backdrop-blur-xl">
+    <div className="min-h-screen bg-white">
+      <nav className="border-b border-slate-200 bg-white/90 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition-colors">
+          <a href="/" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            <span className="text-xl font-bold text-emerald-400">FixAccess</span>
+            <Shield className="h-5 w-5 text-blue-600" />
+            <span className="text-xl font-bold text-slate-900">FixAccess</span>
           </a>
+          <a href="/dashboard" className="text-sm text-slate-600 hover:text-slate-900">Dashboard</a>
         </div>
       </nav>
 
@@ -55,12 +67,12 @@ export function ScanResults({ url, score, violations, createdAt }: ScanResultsPr
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-lg text-zinc-200 hover:text-white flex items-center gap-1.5"
+                className="text-lg text-slate-900 hover:text-blue-600 flex items-center gap-1.5 font-medium"
               >
-                {url} <ExternalLink className="h-4 w-4 text-zinc-500" />
+                {url} <ExternalLink className="h-4 w-4 text-slate-400" />
               </a>
             </div>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-slate-500">
               Scanned on {new Date(createdAt).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
@@ -69,8 +81,8 @@ export function ScanResults({ url, score, violations, createdAt }: ScanResultsPr
                 minute: "2-digit",
               })}
             </p>
-            <p className="text-sm text-zinc-500 mt-1">
-              {violations.length} {violations.length === 1 ? "issue" : "issues"} found ·{" "}
+            <p className="text-sm text-slate-500 mt-1">
+              {violations.length} {violations.length === 1 ? "issue" : "issues"} found &middot;{" "}
               {violations.reduce((acc, v) => acc + v.nodes.length, 0)} affected elements
             </p>
           </div>
@@ -81,55 +93,72 @@ export function ScanResults({ url, score, violations, createdAt }: ScanResultsPr
           {(["critical", "serious", "moderate", "minor"] as const).map((impact) => (
             <div
               key={impact}
-              className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center"
+              className={`rounded-xl border p-4 text-center ${impactColors[impact]}`}
             >
-              <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium border ${getImpactBadgeColor(impact)} mb-2`}>
+              <span className="text-xs font-semibold uppercase tracking-wider">
                 {impact}
               </span>
-              <p className="text-2xl font-bold text-white">{counts[impact]}</p>
+              <p className="text-2xl font-bold mt-1">{counts[impact]}</p>
             </div>
           ))}
         </div>
 
+        {/* Tab Buttons */}
+        <div className="flex gap-1 border-b border-slate-200 mb-6">
+          {tabs.map((tab) => {
+            const count = tab === "all" ? violations.length : counts[tab];
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
+                  activeTab === tab
+                    ? "text-blue-600 border-blue-600"
+                    : "text-slate-500 border-transparent hover:text-slate-700"
+                }`}
+              >
+                {tab} ({count})
+              </button>
+            );
+          })}
+        </div>
+
         {/* Violations List */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-zinc-900 border border-zinc-800 mb-6">
-            <TabsTrigger value="all" className="data-[state=active]:bg-zinc-700">
-              All ({violations.length})
-            </TabsTrigger>
-            <TabsTrigger value="critical" className="data-[state=active]:bg-zinc-700">
-              Critical ({counts.critical})
-            </TabsTrigger>
-            <TabsTrigger value="serious" className="data-[state=active]:bg-zinc-700">
-              Serious ({counts.serious})
-            </TabsTrigger>
-            <TabsTrigger value="moderate" className="data-[state=active]:bg-zinc-700">
-              Moderate ({counts.moderate})
-            </TabsTrigger>
-            <TabsTrigger value="minor" className="data-[state=active]:bg-zinc-700">
-              Minor ({counts.minor})
-            </TabsTrigger>
-          </TabsList>
+        <div className="space-y-3">
+          {filtered.length === 0 ? (
+            <div className="text-center py-12 text-slate-500">
+              No {activeTab} issues found.
+            </div>
+          ) : (
+            filtered.map((violation) => (
+              <IssueCard key={violation.id} violation={violation} isPro={true} />
+            ))
+          )}
+        </div>
 
-          <TabsContent value={activeTab} className="space-y-3">
-            {filtered.length === 0 ? (
-              <div className="text-center py-12 text-zinc-500">
-                No {activeTab} issues found.
-              </div>
-            ) : (
-              filtered.map((violation) => (
-                <IssueCard key={violation.id} violation={violation} isPro={true} />
-              ))
-            )}
-          </TabsContent>
-        </Tabs>
+        {/* Bottom CTA */}
+        {hasLockedIssues && (
+          <div className="mt-12 bg-blue-50 border border-blue-200 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <p className="font-semibold text-slate-900">Unlock all fix code</p>
+              <p className="text-sm text-slate-600 mt-1">Get AI-generated fixes for every violation on your site.</p>
+            </div>
+            <a
+              href="/pricing"
+              className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors"
+            >
+              Upgrade to Pro &mdash; $29/mo
+            </a>
+          </div>
+        )}
 
-        {/* CTA */}
-        <div className="text-center mt-16 pb-8">
-          <a href="/">
-            <Button className="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold px-8">
-              Run Another Scan
-            </Button>
+        {/* Run Another */}
+        <div className="text-center mt-12 pb-8">
+          <a
+            href="/"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-2.5 rounded-lg transition-colors"
+          >
+            Run Another Scan
           </a>
         </div>
       </div>

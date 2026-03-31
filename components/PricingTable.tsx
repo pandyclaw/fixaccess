@@ -1,7 +1,6 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const plans = [
   {
@@ -9,12 +8,7 @@ const plans = [
     price: "$0",
     period: "forever",
     description: "Try it out with basic scans",
-    features: [
-      "3 scans per month",
-      "Basic issue detection",
-      "WCAG 2.1 coverage",
-      "Score & summary report",
-    ],
+    features: ["3 scans per month", "Basic issue detection", "WCAG 2.1 coverage", "Score & summary report"],
     cta: "Start Free",
     href: "/",
     highlighted: false,
@@ -24,14 +18,7 @@ const plans = [
     price: "$29",
     period: "/month",
     description: "For developers & small teams",
-    features: [
-      "Unlimited scans",
-      "AI fix code for all issues",
-      "Full violation details",
-      "PDF export reports",
-      "Priority support",
-      "API access",
-    ],
+    features: ["Unlimited scans", "AI fix code for all issues", "Full violation details", "PDF export reports", "Priority support", "API access"],
     cta: "Start Pro Trial",
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
     highlighted: true,
@@ -41,14 +28,7 @@ const plans = [
     price: "$99",
     period: "/month",
     description: "For agencies managing multiple sites",
-    features: [
-      "Everything in Pro",
-      "50 monitored sites",
-      "Weekly automated scans",
-      "White-label reports",
-      "Team collaboration",
-      "Dedicated support",
-    ],
+    features: ["Everything in Pro", "50 monitored sites", "Weekly automated scans", "White-label reports", "Team collaboration", "Dedicated support"],
     cta: "Start Agency Trial",
     priceId: process.env.NEXT_PUBLIC_STRIPE_AGENCY_PRICE_ID,
     highlighted: false,
@@ -64,9 +44,7 @@ export function PricingTable() {
         body: JSON.stringify({ priceId }),
       });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
+      if (data.url) window.location.href = data.url;
     } catch (error) {
       console.error("Checkout error:", error);
     }
@@ -77,36 +55,36 @@ export function PricingTable() {
       {plans.map((plan) => (
         <div
           key={plan.name}
-          className={`rounded-2xl p-6 flex flex-col ${
+          className={`relative rounded-xl p-6 flex flex-col ${
             plan.highlighted
-              ? "bg-zinc-900 border-2 border-emerald-500/50 relative"
-              : "bg-zinc-900/50 border border-zinc-800"
+              ? "bg-blue-600 text-white shadow-xl ring-2 ring-blue-600"
+              : "bg-white border border-slate-200"
           }`}
         >
           {plan.highlighted && (
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-black text-xs font-bold px-3 py-1 rounded-full">
-              Most Popular
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+              MOST POPULAR
             </span>
           )}
-          <h3 className="text-lg font-semibold text-zinc-200">{plan.name}</h3>
-          <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-4xl font-bold text-white">{plan.price}</span>
-            <span className="text-zinc-500">{plan.period}</span>
+          <div className={`text-sm mb-1 ${plan.highlighted ? "text-blue-200" : "text-slate-500"}`}>{plan.description}</div>
+          <h3 className={`text-xl font-bold ${plan.highlighted ? "text-white" : "text-slate-900"}`}>{plan.name}</h3>
+          <div className="mt-2 flex items-baseline gap-1 mb-6">
+            <span className="text-4xl font-bold">{plan.price}</span>
+            <span className={`text-sm ${plan.highlighted ? "text-blue-200" : "text-slate-500"}`}>{plan.period}</span>
           </div>
-          <p className="mt-2 text-sm text-zinc-500">{plan.description}</p>
-          <ul className="mt-6 space-y-3 flex-1">
+          <ul className="space-y-3 flex-1 mb-6">
             {plan.features.map((feature) => (
-              <li key={feature} className="flex items-start gap-2 text-sm text-zinc-300">
-                <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                {feature}
+              <li key={feature} className="flex items-start gap-2 text-sm">
+                <Check className={`h-4 w-4 shrink-0 mt-0.5 ${plan.highlighted ? "text-blue-200" : "text-green-500"}`} />
+                <span className={plan.highlighted ? "text-white" : "text-slate-700"}>{feature}</span>
               </li>
             ))}
           </ul>
-          <Button
-            className={`mt-6 w-full ${
+          <button
+            className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-colors ${
               plan.highlighted
-                ? "bg-emerald-500 hover:bg-emerald-600 text-black font-semibold"
-                : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+                ? "bg-white text-blue-600 hover:bg-blue-50"
+                : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
             onClick={() => {
               if (plan.priceId) handleCheckout(plan.priceId);
@@ -114,7 +92,7 @@ export function PricingTable() {
             }}
           >
             {plan.cta}
-          </Button>
+          </button>
         </div>
       ))}
     </div>
