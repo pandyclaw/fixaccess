@@ -123,6 +123,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-color: #09090b;
+    color: #fafafa;
   }
   html {
     @apply font-sans;
