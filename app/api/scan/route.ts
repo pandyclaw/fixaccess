@@ -92,6 +92,8 @@ export async function POST(request: Request) {
         score: result.score,
         violations: JSON.stringify(result.violations),
         fixes: JSON.stringify(fixes),
+        passes: result.passes,
+        scanTime: result.scanTime,
         userId,
       },
     });

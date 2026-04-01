@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { Shield } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
