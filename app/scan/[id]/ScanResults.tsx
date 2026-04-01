@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ExternalLink, Shield } from "lucide-react";
+import { ArrowLeft, ExternalLink, Shield, Lock } from "lucide-react";
 import { ScoreCircle } from "@/components/ScoreCircle";
 import { IssueCard } from "@/components/IssueCard";
 import type { Violation } from "@/lib/scanner";
@@ -11,6 +11,10 @@ interface ScanResultsProps {
   url: string;
   score: number;
   violations: Violation[];
+  fixes: Record<string, string>;
+  isPro: boolean;
+  scansRemaining: number | null;
+  freeLimit: number;
   createdAt: string;
 }
 
@@ -23,7 +27,16 @@ const impactColors: Record<string, string> = {
 
 const tabs = ["all", "critical", "serious", "moderate", "minor"] as const;
 
-export function ScanResults({ url, score, violations, createdAt }: ScanResultsProps) {
+export function ScanResults({
+  url,
+  score,
+  violations,
+  fixes,
+  isPro,
+  scansRemaining,
+  freeLimit,
+  createdAt,
+}: ScanResultsProps) {
   const [activeTab, setActiveTab] = useState("all");
 
   const counts = {
@@ -38,7 +51,7 @@ export function ScanResults({ url, score, violations, createdAt }: ScanResultsPr
       ? violations
       : violations.filter((v) => v.impact === activeTab);
 
-  const hasLockedIssues = violations.some(
+  const hasLockedIssues = !isPro && violations.some(
     (v) => v.impact === "critical" || v.impact === "serious"
   );
 
@@ -54,6 +67,31 @@ export function ScanResults({ url, score, violations, createdAt }: ScanResultsPr
           <a href="/dashboard" className="text-sm text-slate-600 hover:text-slate-900">Dashboard</a>
         </div>
       </nav>
+
+      {/* Free scan usage banner */}
+      {scansRemaining !== null && (
+        <div className={`border-b px-4 py-2.5 text-center text-sm ${
+          scansRemaining === 0
+            ? "bg-red-50 border-red-200 text-red-800"
+            : scansRemaining === 1
+            ? "bg-amber-50 border-amber-200 text-amber-800"
+            : "bg-blue-50 border-blue-200 text-blue-800"
+        }`}>
+          {scansRemaining === 0 ? (
+            <>
+              You&rsquo;ve used all {freeLimit} free scans this month.{" "}
+              <a href="/pricing" className="font-semibold underline underline-offset-2">Upgrade to Pro</a>{" "}
+              for unlimited scans.
+            </>
+          ) : (
+            <>
+              <span className="font-semibold">{scansRemaining} of {freeLimit} free scans remaining</span>{" "}
+              this month &mdash;{" "}
+              <a href="/pricing" className="font-medium underline underline-offset-2">Upgrade for unlimited</a>
+            </>
+          )}
+        </div>
+      )}
 
       <div className="max-w-5xl mx-auto px-4 py-12">
         {/* Header */}
@@ -73,7 +111,8 @@ export function ScanResults({ url, score, violations, createdAt }: ScanResultsPr
               </a>
             </div>
             <p className="text-sm text-slate-500">
-              Scanned on {new Date(createdAt).toLocaleDateString("en-US", {
+              Scanned on{" "}
+              {new Date(createdAt).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
@@ -85,6 +124,13 @@ export function ScanResults({ url, score, violations, createdAt }: ScanResultsPr
               {violations.length} {violations.length === 1 ? "issue" : "issues"} found &middot;{" "}
               {violations.reduce((acc, v) => acc + v.nodes.length, 0)} affected elements
             </p>
+            {!isPro && (
+              <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
+                <Lock className="h-3.5 w-3.5 text-slate-400" />
+                AI fix code available on{" "}
+                <a href="/pricing" className="text-blue-600 font-medium hover:underline">Pro plan</a>
+              </div>
+            )}
           </div>
         </div>
 
@@ -131,17 +177,24 @@ export function ScanResults({ url, score, violations, createdAt }: ScanResultsPr
             </div>
           ) : (
             filtered.map((violation) => (
-              <IssueCard key={violation.id} violation={violation} isPro={true} />
+              <IssueCard
+                key={violation.id}
+                violation={violation}
+                fix={fixes[violation.id]}
+                isPro={isPro}
+              />
             ))
           )}
         </div>
 
-        {/* Bottom CTA */}
+        {/* Pro upgrade CTA */}
         {hasLockedIssues && (
           <div className="mt-12 bg-blue-50 border border-blue-200 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <p className="font-semibold text-slate-900">Unlock all fix code</p>
-              <p className="text-sm text-slate-600 mt-1">Get AI-generated fixes for every violation on your site.</p>
+              <p className="font-semibold text-slate-900">Unlock AI fix code</p>
+              <p className="text-sm text-slate-600 mt-1">
+                Get AI-generated fix code for every violation — copy and paste straight into your codebase.
+              </p>
             </div>
             <a
               href="/pricing"

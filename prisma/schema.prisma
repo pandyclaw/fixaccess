@@ -61,6 +61,7 @@ model Scan {
   url        String
   score      Int
   violations String
+  fixes      String   @default("{}")
   userId     String?
   user       User?    @relation(fields: [userId], references: [id])
   createdAt  DateTime @default(now())
