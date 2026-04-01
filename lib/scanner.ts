@@ -52,11 +52,12 @@ async function getBrowser() {
   if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
     const chromium = (await import("@sparticuz/chromium")).default;
     const puppeteerCore = (await import("puppeteer-core")).default;
+    const execPath = await chromium.executablePath();
     return puppeteerCore.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport as any,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless as any,
+      args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: execPath,
+      headless: true,
+      defaultViewport: { width: 1280, height: 720 },
     });
   } else {
     const puppeteer = (await import("puppeteer")).default;
