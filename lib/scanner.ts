@@ -1,5 +1,4 @@
-import puppeteer from "puppeteer";
-import AxePuppeteer from "@axe-core/puppeteer";
+import { AxePuppeteer } from "@axe-core/puppeteer";
 
 export interface ViolationNode {
   html: string;
@@ -39,39 +38,41 @@ function calculateScore(violations: Violation[]): number {
   for (const v of violations) {
     for (const _node of v.nodes) {
       switch (v.impact) {
-        case "critical":
-          score -= 10;
-          break;
-        case "serious":
-          score -= 6;
-          break;
-        case "moderate":
-          score -= 3;
-          break;
-        case "minor":
-          score -= 1;
-          break;
+        case "critical": score -= 10; break;
+        case "serious": score -= 5; break;
+        case "moderate": score -= 2; break;
+        case "minor": score -= 1; break;
       }
     }
   }
   return Math.max(0, Math.min(100, score));
 }
 
+async function getBrowser() {
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    const chromium = (await import("@sparticuz/chromium")).default;
+    const puppeteerCore = (await import("puppeteer-core")).default;
+    return puppeteerCore.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
+  } else {
+    const puppeteer = (await import("puppeteer")).default;
+    return puppeteer.launch({ headless: true });
+  }
+}
+
 export async function scanUrl(url: string): Promise<ScanResult> {
   const normalizedUrl = normalizeUrl(url);
-  const startTime = Date.now();
-
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-  });
+  const start = Date.now();
+  const browser = await getBrowser();
 
   try {
     const page = await browser.newPage();
-    await page.goto(normalizedUrl, {
-      waitUntil: "networkidle2",
-      timeout: 30000,
-    });
+    await page.setUserAgent("Mozilla/5.0 (compatible; FixAccess Scanner/1.0)");
+    await page.goto(normalizedUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
 
     const results = await new AxePuppeteer(page).analyze();
 
@@ -89,15 +90,12 @@ export async function scanUrl(url: string): Promise<ScanResult> {
       })),
     }));
 
-    const score = calculateScore(violations);
-    const scanTime = Date.now() - startTime;
-
     return {
       url: normalizedUrl,
-      score,
+      score: calculateScore(violations),
       violations,
       passes: results.passes.length,
-      scanTime,
+      scanTime: Date.now() - start,
       timestamp: new Date().toISOString(),
     };
   } finally {
