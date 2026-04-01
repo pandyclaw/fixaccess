@@ -54,7 +54,7 @@ export default async function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {scans.map((scan) => (
+                {scans.map((scan: any) => (
                   <tr key={scan.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
                       <span className="text-sm text-slate-900 font-medium truncate max-w-xs block">{scan.url}</span>
