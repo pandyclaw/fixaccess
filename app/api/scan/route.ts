@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     // Enforce free scan limit for logged-in free users
     if (userId && user && !isPro) {
       const now = new Date();
-      const resetDate = new Date(user.scanResetDate);
+      const resetDate = new Date(user.scanResetAt);
       const monthDiff =
         (now.getFullYear() - resetDate.getFullYear()) * 12 +
         (now.getMonth() - resetDate.getMonth());
@@ -45,9 +45,9 @@ export async function POST(request: Request) {
       if (monthDiff >= 1) {
         await prisma.user.update({
           where: { id: userId },
-          data: { scanCount: 0, scanResetDate: now },
+          data: { scanCount: 0, scanResetAt: now },
         });
-        user = { ...user, scanCount: 0, scanResetDate: now };
+        user = { ...user, scanCount: 0, scanResetAt: now };
       }
 
       if (user.scanCount >= FREE_SCAN_LIMIT) {
