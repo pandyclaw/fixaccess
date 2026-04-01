@@ -50,9 +50,9 @@ function calculateScore(violations: Violation[]): number {
 
 async function getBrowser() {
   if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
-    const chromium = (await import("@sparticuz/chromium-min")).default;
+    const chromium = (await import("@sparticuz/chromium")).default;
     const puppeteerCore = (await import("puppeteer-core")).default;
-    const execPath = await chromium.executablePath("https://github.com/nicedocl/chromium-packed/releases/download/v143.0.4/chromium-v143.0.4-pack.tar");
+    const execPath = await chromium.executablePath();
     return puppeteerCore.launch({
       args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
       executablePath: execPath,
